@@ -8,11 +8,12 @@ import java.io.PrintWriter;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.nio.channels.MembershipKey;
 import java.nio.charset.StandardCharsets;
 
 public class one2many_server extends Thread{
     protected MulticastSocket multicastSocket = null;
-    public static DatagramChannel channel = null;
+    public static DatagramChannel server_channel = null;
 
     protected byte[] buffer = new byte[256];
     protected byte[] received_buffer = new byte[256];
@@ -22,7 +23,9 @@ public class one2many_server extends Thread{
     private DatagramPacket packet;
     private DatagramPacket received_packet;
     private InetAddress address = null;
-    private int packetPort;
+
+    private static DatagramSocket socket;
+    private byte[] buf;
 
     private PrintWriter out;
     private BufferedReader in;
@@ -30,22 +33,21 @@ public class one2many_server extends Thread{
     public one2many_server(int port) throws IOException {
         //Start UDP Server
         InetSocketAddress address = new InetSocketAddress("localhost", port);
-        channel = DatagramChannelBuilder.bindChannel(address);
+        server_channel = DatagramChannelBuilder.bindChannel(address);
 
-//        multicastSocket = new MulticastSocket(port);
-//        multicastSocket.setReuseAddress(true);
-//        group = InetAddress.getByName("230.0.0.0");
-//        multicastSocket.joinGroup(group);
+        NetworkInterface ni = NetworkInterface.getByName("lo");
+        server_channel.setOption(StandardSocketOptions.IP_MULTICAST_IF, ni);
+        server_channel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
+
+        InetAddress group = InetAddress.getByName("230.0.0.0");
+        MembershipKey key = server_channel.join(group, ni);
     }
 
     //UDP Methods
     public void run() {
         try {
             while (true) {
-                InetSocketAddress serverAddress = new InetSocketAddress("localhost", 7777);
-                sendMessage(channel, "Hello", serverAddress);
-//                sendPacket();
-//                receivePacket();
+                sendMessage("Hello");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -73,59 +75,22 @@ public class one2many_server extends Thread{
         return msg;
     }
 
-    public static void sendMessage(DatagramChannel client, String msg, SocketAddress serverAddress) throws IOException {
+    public void sendMessage(String msg) throws IOException {
         //UDP message has to be in a specific message structure.
         ByteBuffer buffer = ByteBuffer.wrap(msg.getBytes());
-        client.send(buffer, serverAddress);
+
+
+        socket = new DatagramSocket();
+        group = InetAddress.getByName("230.0.0.0");
+        buf = msg.getBytes();
+
+        DatagramPacket packet = new DatagramPacket(buf, buf.length, group, 4321);
+        socket.send(packet);
+        socket.close();
     }
 
-//    public void sendPacket() throws IOException {
-//        String message = "Hello";
-//        buffer = message.getBytes();
-//
-//        packet = new DatagramPacket(buffer, buffer.length, group, 7777);
-//        multicastSocket.send(packet);
-//    }
-//
-//    public void receivePacket() throws IOException {
-//        received_packet = new DatagramPacket(received_buffer, received_buffer.length);
-//        multicastSocket.receive(received_packet);
-//
-//        if (received_packet.getPort() != 6666) {
-//            System.out.println("Received " + packet.getPort() + " into the server");
-//            address = received_packet.getAddress();
-//            checkReceivedUDPMessage(new String(received_packet.getData(), 0, received_packet.getLength()));
-//        }
-//    }
-//
-//    public void returnUDPPacket(String message) throws IOException {
-//        packetPort = received_packet.getPort();
-//
-//        received_buffer = message.getBytes();
-//        received_packet = new DatagramPacket(received_buffer, received_buffer.length, address, packetPort);
-//
-//        multicastSocket.send(received_packet);
-//    }
-//
-//    public void checkReceivedUDPMessage(String message) throws IOException {
-//        if (message.contains("hello")) {
-//            //parse the received Packet information from the client
-//            returnUDPPacket("Server says hi");
-//            System.out.println("Received a packet from a client with correct word, sending back to: " + address);
-//        }else if(message.contains("end")) {
-//            System.out.println("Client wants to end communication, sending end");
-//            returnUDPPacket("end");
-//            multicastSocket.leaveGroup(group);
-//            multicastSocket.close();
-//        }
-//        }else{
-//            System.out.println("Correct message not sent to this server, sending end");
-//            returnUDPPacket("end");
-//        }
-//    }
-
     public static void main(String[] args) throws Exception {
-         one2many_server server = new one2many_server(7777);
-         server.run();
+        one2many_server server = new one2many_server(4321);
+        server.run();
         }
     }
