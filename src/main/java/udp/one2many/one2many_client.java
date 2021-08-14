@@ -15,10 +15,11 @@ import java.nio.channels.MulticastChannel;
 public class one2many_client extends Thread {
     protected Socket clientSocket;
     public MulticastSocket multicastSocket = null;
-    private static final String MULTICAST_INTERFACE = "eth0";
-    private static final int MULTICAST_PORT = 4321;
+    private static final String MULTICAST_INTERFACE = "lo";
+    private static final int MULTICAST_PORT = 4322;
     private static final String MULTICAST_IP = "230.0.0.0";
     public InetAddress group = InetAddress.getByName(MULTICAST_IP);
+    public ByteBuffer buf;
     public byte[] buffer;
     public byte[] received_buffer;
     public int serverPort;
@@ -28,16 +29,25 @@ public class one2many_client extends Thread {
 
 
     public one2many_client() throws Exception {
-        client_channel = DatagramChannelBuilder.bindChannel(null);
-        client_channel.configureBlocking(false);
+//        client_channel = DatagramChannelBuilder.bindChannel(null);
+//        client_channel.configureBlocking(false);
+//
+//        NetworkInterface ni = NetworkInterface.getByName(MULTICAST_INTERFACE);
+//        client_channel.setOption(StandardSocketOptions.IP_MULTICAST_IF, ni);
+//        client_channel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
+//
+//        InetAddress inetAddress = InetAddress.getByName(MULTICAST_IP);
+//
+//        MembershipKey key = client_channel.join(group, ni);
+        multicastSocket = new MulticastSocket(MULTICAST_PORT);
+        multicastSocket.setReuseAddress(true);
+        group = InetAddress.getByName("230.0.0.0");
+        multicastSocket.joinGroup(group);
+        multicastSocket.setTimeToLive(1);
+        multicastSocket.setLoopbackMode(true);
+        multicastSocket.setBroadcast(true);
 
-        NetworkInterface ni = NetworkInterface.getByName(MULTICAST_INTERFACE);
-        client_channel.setOption(StandardSocketOptions.IP_MULTICAST_IF, ni);
-        client_channel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-
-        InetAddress inetAddress = InetAddress.getByName(MULTICAST_IP);
-
-        MembershipKey key = client_channel.join(group, ni);
+        //mulitcastSocket is used by the client as the server broadcasts to multiple clients.
     }
 
     public void discoverAvailableServers(String msg) throws IOException {
@@ -73,11 +83,13 @@ public class one2many_client extends Thread {
 
     }
 
-    private void multicastSendPacket() throws IOException {
+    public void multicastSendPacket() throws IOException {
         //trying to send a UDP message to a group, without a defined port; then grab the port/location it came from. 08/06/2021
 
-        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, 0);
-
+        //binds the port to a random port with 0, this is where the packet is coming from (not the destination as we thought)
+        String msg = "From Client";
+        buffer = msg.getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MULTICAST_PORT);
         multicastSocket.send(packet);
 
         System.out.println("Sending out UDP on port: " + String.valueOf(packet.getPort()));

@@ -9,7 +9,7 @@ public class MulticastServer extends Thread {
     protected InetAddress group = null;
 
     public MulticastServer() throws IOException {
-        socket = new MulticastSocket(5555);
+        socket = new MulticastSocket();
         socket.setReuseAddress(true);
         group = InetAddress.getByName("230.0.0.0");
         socket.joinGroup(group);

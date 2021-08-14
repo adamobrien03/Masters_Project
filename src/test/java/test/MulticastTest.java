@@ -1,12 +1,10 @@
-package test;
-
-import udp.original_client_withTCPandUDP;
-
-import static org.junit.Assert.assertEquals;
-
-public class MulticastTest {
-    private original_client_withTCPandUDP client;
-
+//package test;
+//
+//import org.junit.Test;
+//
+//import static org.junit.Assert.assertEquals;
+//
+//public class MulticastTest {
 //    @Test
 //    public void whenBroadcasting_thenDiscoverExpectedServers() throws Exception {
 //        new Server().start();
@@ -38,4 +36,4 @@ public class MulticastTest {
 //        client.discoverAvailableServers("end");
 //        client.stopUDPBroadcast();
 //    }
-}
+//}

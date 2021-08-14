@@ -10,7 +10,7 @@ public class MulticastReciever2 extends Thread{
 
     private static final String MULTICAST_INTERFACE = "lo";
     private static final int MULTICAST_PORT = 4321;
-    private static final String MULTICAST_IP = "230.0.0.0";
+    private static final String MULTICAST_IP = "0.0.0.0";
 
     private String receiveMessage(String ip, String iface, int port) throws IOException {
         DatagramChannel datagramChannel = DatagramChannel.open(StandardProtocolFamily.INET);
@@ -20,6 +20,7 @@ public class MulticastReciever2 extends Thread{
         datagramChannel.bind(new InetSocketAddress(port));
 
         datagramChannel.setOption(StandardSocketOptions.IP_MULTICAST_IF, networkInterface);
+//        datagramChannel.setOption(StandardSocketOptions.SO_BROADCAST, true);
         InetAddress inetAddress = InetAddress.getByName(ip);
 
         MembershipKey membershipKey = datagramChannel.join(inetAddress, networkInterface);

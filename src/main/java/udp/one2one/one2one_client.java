@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 public class one2one_client extends Thread {
     protected Socket clientSocket;
     private final DatagramSocket datagramSocket;
-
     private final InetAddress group;
     private byte[] buffer;
 
