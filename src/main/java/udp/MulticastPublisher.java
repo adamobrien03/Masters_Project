@@ -11,7 +11,7 @@ public class MulticastPublisher {
     private InetAddress group;
     private byte[] buf;
 
-    public void multicast(String multicastMessage) throws IOException, SocketException {
+    public void multicast(String multicastMessage) throws IOException {
         socket = new DatagramSocket();
         group = InetAddress.getByName("230.0.0.0");
         buf = multicastMessage.getBytes();
