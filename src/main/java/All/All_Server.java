@@ -1,9 +1,6 @@
 package All;
 
-import All.Util.Decrypt;
-import All.Util.Encrypt;
 import All.Util.UDPBuilder;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -12,16 +9,18 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+
+import static All.Util.TCP.*;
+import static All.Util.UDP.receiveUDPMessage;
+import static All.Util.UDP.sendUDPMessage;
 import static java.lang.Integer.parseInt;
 
 public class All_Server {
-    static byte[] buf;
     private static ServerSocket tcpServer;
     private static Socket tcpClient;
     private static DatagramChannel udpServer;
@@ -32,8 +31,6 @@ public class All_Server {
     private static int private_port = parseInt(private_tcp_port);
     private static InetSocketAddress address = new InetSocketAddress("localhost", 5555);
     private static SocketAddress remoteAdd;
-    private static int heartbeat = 0;
-
 
     public static void  startUDPServer() throws IOException {
         udpServer = UDPBuilder.bindChannel(address);
@@ -48,75 +45,6 @@ public class All_Server {
 
         out = new PrintWriter(tcpClient.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(tcpClient.getInputStream()));
-    }
-
-    public static boolean checkUDPServerStatus(DatagramChannel server) throws IOException {
-        return server.isOpen();
-    }
-
-    public static boolean checkTCPServerStatus(ServerSocket server) throws IOException {
-        return server.isClosed();
-    }
-
-    public static void sendUDPMessage(DatagramChannel client, String msg, SocketAddress serverAddress) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, SignatureException, InvalidKeyException {
-        String encrypted_message = Encrypt.encrypt_greeting_hmac_base64(msg);
-        ByteBuffer buffer = ByteBuffer.wrap(encrypted_message.getBytes());
-        client.send(buffer, serverAddress);
-    }
-
-    public static String receiveUDPMessage(DatagramChannel server) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, SignatureException, InvalidKeyException {
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        remoteAdd = server.receive(buffer);
-        String message = extractUDPMessage(buffer);
-        System.out.println("The encrypted message from the client: " + message);
-
-        //Decrypt the UDP Message
-        String decrypted_message = Decrypt.decrypt_greeting_hmac_base64(message);
-        System.out.println("Server at #" + remoteAdd + "  sent: " + decrypted_message);
-        return decrypted_message;
-    }
-
-    private static String extractUDPMessage(ByteBuffer buffer) {
-        buffer.flip();
-
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
-
-        return new String(bytes);
-    }
-
-    private static void sendTCPMessage(String outgoing) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, SignatureException, InvalidKeyException, InterruptedException {
-            String outgoing_greeting = Encrypt.encrypt_greeting_hmac_base64(outgoing);
-            out.println(outgoing_greeting);
-    }
-
-    private static void sendTCPHeartbeatMessage(String heartbeat_message) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, SignatureException, InvalidKeyException {
-        //if the heartbeat message matches, keep communicating
-        String outgoing_greeting = Encrypt.encrypt_greeting_hmac_base64(heartbeat_message);
-        out.println(outgoing_greeting);
-
-        heartbeat++;
-        System.out.println("Server Heartbeat: " + heartbeat);
-    }
-
-    public static boolean receiveTCPMessage(String required_message) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SignatureException {
-        //Decrypt incoming to verify incoming communication communication
-        return required_message.contains(Decrypt.decrypt_greeting_hmac_base64(in.readLine()));
-    }
-
-    public static boolean receiveTCPHeartbeatMessage(String required_message) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SignatureException {
-        //Decrypt starting heartbeat message from client.
-        return required_message.contains(Decrypt.decrypt_greeting_hmac_base64(in.readLine()));
-    }
-
-    public void stopTCPServer() throws IOException {
-        in.close();
-        out.close();
-        tcpClient.close();
-        tcpServer.close();
-    }
-    public static void stopUDPServer() throws IOException {
-        udpServer.close();
     }
 
     public static void main(String[] args) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, SignatureException, InvalidKeyException, InterruptedException {
@@ -137,16 +65,17 @@ public class All_Server {
                     startTCPServer(private_port);
 
                     Thread.sleep(3000);
-                    if(receiveTCPMessage("Hello")){
+                    if(receiveTCPMessage("Hello", in)){
                         //If they say Hello, we say Start
-                        sendTCPMessage("Start");
+                        sendTCPMessage("Start", out);
 
                         Thread.sleep(3000);
                         System.out.println("After sleep, before While check");
 
-                        while(receiveTCPHeartbeatMessage("Client_Heartbeat")){
+                        while(receiveTCPHeartbeatMessage("Client_Heartbeat", in)){
                             Thread.sleep(3000);
-                            sendTCPHeartbeatMessage("Server_Heartbeat");
+                            sendTCPHeartbeatMessage("Server_Heartbeat", out);
+                            System.out.println("Server Heartbeat: " + heartbeat);
                         }
                     }
                 }

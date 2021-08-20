@@ -15,6 +15,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
 import static All.All_Client.*;
+import static All.Util.TCP.sendTCPMessage;
+import static All.Util.UDP.receiveUDPMessage;
+import static All.Util.UDP.sendUDPMessage;
 import static java.lang.Integer.parseInt;
 import static org.junit.Assert.assertEquals;
 
@@ -35,15 +38,15 @@ public class All {
 
         //Close UDP Client
         System.out.println("Stopping UDP Client");
-        stopUDPClient();
+        //All.Util.UDP.stopUDPClient(udpClient);
 
         //Start up the TCP server and communicate.
         System.out.println("Starting TCP Client");
-        startTCPConnection("127.0.0.1", parseInt(port));
+        //startTCPConnection("127.0.0.1", parseInt(port));
 
         //Send TCP Message
         System.out.println("Sending TCP Message");
-        sendTCPMessage("Hello");
+        //sendTCPMessage("Hello", out);
 
         //assertEquals("hello client", cs1.receiveMessage());
     }
