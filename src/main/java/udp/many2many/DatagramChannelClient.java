@@ -25,7 +25,6 @@ public class DatagramChannelClient {
         InetSocketAddress serverAddress = new InetSocketAddress("localhost", 7001);
 
         sendMessage(client, msg, serverAddress);
-
     }
 
 }
