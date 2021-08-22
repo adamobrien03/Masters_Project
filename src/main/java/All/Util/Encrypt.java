@@ -20,7 +20,7 @@ public class Encrypt {
 
         //Able to specify the type of cipher to utilise from a enum library.
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        //Gwt the hash value.
+        //Get the hash value.
         MessageDigest sha = MessageDigest.getInstance("SHA-256");
         //encrypt the value with the hash value using the password/shared key
         sha.update(password);
@@ -52,9 +52,9 @@ public class Encrypt {
     }
 
     //Encrypting HMAC and Base64 encryption; putting them together in one string.
-    public static String encrypt_greeting_hmac_base64(String message) throws NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchPaddingException, UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException, SignatureException {
+    public static String encrypt_greeting_hmac_base64(String message, String password) throws NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchPaddingException, UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException, SignatureException {
         //calculate HMAC to be added
-        String hmac = HashSetup.calculateHMAC(message.getBytes(), "password".getBytes());
+        String hmac = HashSetup.calculateHMAC(message.getBytes(), password.getBytes());
 
         //add to String
         String full_message = hmac + message;

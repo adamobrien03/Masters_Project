@@ -13,25 +13,24 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
 public class UDP {
-    private static String received_port = "";
-    private static String received_ip = "";
+    public static SocketAddress remoteAdd;
 
-    public static void sendUDPMessage(DatagramChannel client, String msg, SocketAddress serverAddress) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, SignatureException, InvalidKeyException {
-        String encrypted_message = Encrypt.encrypt_greeting_hmac_base64(msg);
+    public static void sendUDPMessage(DatagramChannel client, String msg, String password, SocketAddress serverAddress) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, SignatureException, InvalidKeyException {
+        String encrypted_message = Encrypt.encrypt_greeting_hmac_base64(msg, password);
 
         ByteBuffer buffer = ByteBuffer.wrap(encrypted_message.getBytes());
         client.send(buffer, serverAddress);
     }
 
-    public static String receiveUDPMessage(DatagramChannel client) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, SignatureException, InvalidKeyException {
+    public static String receiveUDPMessage(DatagramChannel client, String password) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, SignatureException, InvalidKeyException {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
-        SocketAddress remoteAdd = client.receive(buffer);
+        remoteAdd = client.receive(buffer);
         String message = extractUDPMessage(buffer);
-        System.out.println("Client at #" + remoteAdd + "  sent unencypted message of: " + message);
+        System.out.println("Client at #" + remoteAdd + "  sent encrypted message: " + message);
 
-        String decrypted_message = Decrypt.decrypt_greeting_hmac_base64(message);
-
-        System.out.println("Client at #" + remoteAdd + "  sent: " + decrypted_message);
+        //Decrypt with Base64 and HMAC
+        String decrypted_message = Decrypt.decrypt_greeting_hmac_base64(message, password);
+        System.out.println("Client at #" + remoteAdd + "  sent decrypted message: " + decrypted_message);
 
         return decrypted_message;
     }

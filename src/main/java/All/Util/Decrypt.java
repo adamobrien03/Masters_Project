@@ -41,7 +41,7 @@ public class Decrypt {
     }
 
     //Decrypting Base64 encoded string and HMAC; with HMAC validation
-    public static String decrypt_greeting_hmac_base64(String message) throws InvalidAlgorithmParameterException, NoSuchPaddingException, UnsupportedEncodingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SignatureException {
+    public static String decrypt_greeting_hmac_base64(String message, String password) throws InvalidAlgorithmParameterException, NoSuchPaddingException, UnsupportedEncodingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SignatureException {
         try {
             String decryptedMessage = decrypt_text(message);
 
@@ -50,7 +50,7 @@ public class Decrypt {
             //byte[] msg = Arrays.copyOfRange(decryptedMessage, 40, message.length());
             byte[] msg = decryptedMessage.substring(40).getBytes();
 
-            if (!HashSetup.calculateHMAC(msg, "password".getBytes()).equals(hmac)) {
+            if (!HashSetup.calculateHMAC(msg, password.getBytes()).equals(hmac)) {
                 System.out.println("Message corruption detected!");
             }
 
@@ -61,8 +61,6 @@ public class Decrypt {
             return ("No message received");
         }
     }
-
-
 
     //Decrypting AES; passing message and password key.
     public String decrypt_greeting_aes(String message) throws InvalidAlgorithmParameterException, NoSuchPaddingException, UnsupportedEncodingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SignatureException {

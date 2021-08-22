@@ -41,10 +41,11 @@ public class tcp_client {
         out.println(message);
     }
 
-    public String receiveMessage() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SignatureException {
-        String incoming_message = in.readLine();
-        return Decrypt.decrypt_greeting_hmac_base64(incoming_message);
-    }
+//    public String receiveMessage() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SignatureException {
+//        String incoming_message = in.readLine();
+//
+//        return Decrypt.decrypt_greeting_hmac_base64(incoming_message, );
+//    }
 
     public void stopConnection() throws IOException {
         in.close();

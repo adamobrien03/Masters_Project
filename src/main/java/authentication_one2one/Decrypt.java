@@ -41,16 +41,12 @@ public class Decrypt {
     }
 
     //Decrypting Base64 encoded string and HMAC; with HMAC validation
-    public static String decrypt_greeting_hmac_base64(String message) throws InvalidAlgorithmParameterException, NoSuchPaddingException, UnsupportedEncodingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SignatureException {
+    public static String decrypt_greeting_hmac_base64(String message, String password) throws InvalidAlgorithmParameterException, NoSuchPaddingException, UnsupportedEncodingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SignatureException {
         String decryptedMessage = decrypt_text(message);
-        System.out.println("Adam check decrypted message here" + decryptedMessage);
-
-        //byte[] hmac = Arrays.copyOfRange(decryptedMessage, 0, 40);
         String hmac = decryptedMessage.substring(0, 40);
-        //byte[] msg = Arrays.copyOfRange(decryptedMessage, 40, message.length());
         byte[] msg = decryptedMessage.substring(40).getBytes();
 
-        if (!HashSetup.calculateHMAC(msg, "password".getBytes()).equals(hmac)) {
+        if (!HashSetup.calculateHMAC(msg, password.getBytes()).equals(hmac)) {
             System.out.println("Message corruption detected!");
         }
         return decryptedMessage.substring(40);
@@ -66,7 +62,6 @@ public class Decrypt {
         if (!HashSetup.calculateHMAC(msg, "password".getBytes()).equals(new String(hmac))) {
             System.out.println("Message corruption detected!");
         }
-
         return msg.toString();
     }
 }
